@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
@@ -37,8 +38,7 @@ fun TopAppBar(
     pageTitle: String
 ) {
     Surface(
-        color = MaterialTheme.colorScheme.surfaceVariant,
-        modifier = modifier.height(Values.appBarHeight)
+        color = MaterialTheme.colorScheme.primary, modifier = modifier.height(Values.appBarHeight)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -67,12 +67,14 @@ fun HomeScreen() {
             pageTitle = "Home"
         )
         Row(
-            Modifier.fillMaxWidth(),
+            Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(text = "Greetings!")
-            OnlineStatusSwitch()
+            PBToggle()
         }
     }
 
