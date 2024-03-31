@@ -1,9 +1,20 @@
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
+    kotlin("plugin.serialization") version "1.9.23"
 }
 
+
+
 android {
+    signingConfigs {
+        create("release") {
+            storeFile = file("/home/sbeve72/MEGA/PBKeystore.jks")
+            storePassword = "123456"
+            keyAlias = "PB-App"
+            keyPassword = "123456"
+        }
+    }
     namespace = "com.pb.pb_app"
     compileSdk = 34
 
@@ -24,23 +35,26 @@ android {
         release {
             isMinifyEnabled = true
             proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
             )
+            renderscriptOptimLevel = 3
+            isJniDebuggable = false
+            isDebuggable = false
+            signingConfig = signingConfigs.getByName("release")
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "17"
     }
     buildFeatures {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
+        kotlinCompilerExtensionVersion = "1.5.11"
     }
     packaging {
         resources {
@@ -48,6 +62,8 @@ android {
         }
     }
 }
+
+
 
 dependencies {
     implementation(libs.androidx.navigation.compose)
@@ -66,4 +82,13 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.android)
+    implementation(libs.ktor.client.content.negotiation)
+    implementation(libs.ktor.serialization.kotlinx.json)
+    implementation(libs.ktor.client.cio)
+    implementation(libs.hilt.android)
+    implementation(libs.androidx.work.runtime.ktx)
+    implementation("androidx.compose.material:material-icons-extended")
+    implementation(kotlin("reflect"))
 }
