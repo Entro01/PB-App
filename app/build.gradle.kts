@@ -1,7 +1,7 @@
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
-    kotlin("plugin.serialization") version "1.9.23"
+    kotlin("plugin.serialization").version(libs.versions.serialization).apply(true)
 }
 
 
@@ -70,6 +70,7 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
@@ -86,9 +87,7 @@ dependencies {
     implementation(libs.ktor.client.android)
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.serialization.kotlinx.json)
-    implementation(libs.ktor.client.cio)
     implementation(libs.hilt.android)
     implementation(libs.androidx.work.runtime.ktx)
-    implementation("androidx.compose.material:material-icons-extended")
-    implementation(kotlin("reflect"))
+    implementation(libs.androidx.material3.icons.extended)
 }

@@ -1,121 +1,172 @@
 package com.pb.pb_app.utils
 
+import android.provider.Telephony.Carriers.PORT
 import android.util.Log
+import com.pb.pb_app.utils.models.Credentials
 import com.pb.pb_app.utils.models.Resource
 import com.pb.pb_app.utils.models.employees.Coordinator
 import com.pb.pb_app.utils.models.employees.Freelancer
 import com.pb.pb_app.utils.models.employees.GenericEmployee
+import com.pb.pb_app.utils.models.employees.NewUser
 import com.pb.pb_app.utils.models.projects.Enquiry
+import com.pb.pb_app.utils.models.projects.EnquiryUpdateAction
 import com.pb.pb_app.utils.models.projects.EnquiryStatus
+import com.pb.pb_app.utils.models.projects.NewEnquiryHolder
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.android.Android
+import io.ktor.client.plugins.DefaultRequest
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
+import io.ktor.http.URLProtocol
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
+import io.ktor.http.path
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
 
 private const val TAG = "KtorServerConnector"
 
-const val BASE_URL = "https://morning-sunset-da33ae42.zvgz4d.on-acorn.io/"
-
 object KtorServerConnector {
+    private const val HOST = "174a-103-248-172-84.ngrok-free.app"
+
     private val ktorClient = HttpClient(Android) {
+        install(DefaultRequest) {
+            contentType(ContentType.Application.Json)
+            url {
+                protocol = URLProtocol.HTTPS
+                host = HOST
+            }
+        }
         install(ContentNegotiation) {
             json(Json {
-                prettyPrint = true
                 isLenient = true
+                prettyPrint = true
             })
         }
     }
 
-
-    suspend fun getCoordinators(): Resource.Success<List<Coordinator>> {
-        val arg = "Coordinator"
-        var url = "${BASE_URL}print-employee-details/"
-        url += "?arg=$arg"
-        return Resource.Success(ktorClient.get(url).body())
-    }
-
-
-    suspend fun getFreelancers(): Resource.Success<List<Freelancer>> {
-        val arg = "Freelancer"
-        var url = "${BASE_URL}print-employee-details/"
-        url += "?arg=$arg"
-        return Resource.Success(ktorClient.get(url).body())
-    }
-
-    suspend fun getEmployee(username: String): Resource.Success<GenericEmployee> {
-        return Resource.Success(ktorClient.get("${BASE_URL}print-employee-details/?arg=${username}").body<List<GenericEmployee>>()[0])
-    }
-
-    suspend fun authenticate(username: String, password: String): Boolean {
-        val result = ktorClient.post("${BASE_URL}login/") {
-            contentType(ContentType.Application.Json)
-            setBody(
-                JsonObject(
-                    mapOf(
-                        "employee_id" to JsonPrimitive(username), "password" to JsonPrimitive(password)
-                    )
-                )
-            )
+    // GET REQUESTS
+    suspend fun getCoordinators(): Resource<List<Coordinator>> {
+        val response = ktorClient.get {
+            url.path("print-employee-details")
+            url.parameters["role_or_employee_id"] = "Coordinator"
         }
-        return result.status.isSuccess()
-    }
 
-    suspend fun changeProjectStatus(enquiryID: Int, employeeID: String, targetStatus: EnquiryStatus) {
-        ktorClient.post("${BASE_URL}update-enquiry-status/") {
-            contentType(ContentType.Application.Json)
-            setBody(
-                JsonObject(
-                    mapOf(
-                        "enquiry_id" to JsonPrimitive(enquiryID),
-                        "employee_id" to JsonPrimitive(employeeID),
-                        "stats" to JsonPrimitive(targetStatus.statusCode)
-                    )
-                )
-            )
+        return if (response.status.isSuccess()) {
+            Resource.Success(response.body())
+        } else {
+            Resource.Failure(response.status.description)
         }
     }
 
-    suspend fun createEnquiry(name: String, description: String) {
-        ktorClient.post("${BASE_URL}enquiry-create") {
+    suspend fun getFreelancers(): Resource<List<Freelancer>> {
+        val response = ktorClient.get {
+            url.path("print-employee-details")
+            url.parameters["role_or_employee_id"] = "Freelancer"
+        }
+
+        return if (response.status.isSuccess()) {
+            Resource.Success(response.body())
+        } else {
+            Resource.Failure(response.status.description)
+        }
+    }
+
+    suspend fun getEnquiriesByUsernameAndStatus(username: String, vararg enquiryStatuses: EnquiryStatus): Resource<List<Enquiry>> {
+        val statuses = StringBuilder()
+
+        for (each in enquiryStatuses) {
+            statuses.append(each.name)
+        }
+
+        val response = ktorClient.get {
             contentType(ContentType.Application.Json)
-            setBody {
-                JsonObject(
-                    mapOf(
-                        //
-                    )
-                )
+            url.path("print-enquiry-details")
+            url.parameters["username"] = username
+            if (statuses.isNotEmpty()) url.parameters["status"] = statuses.toString()
+        }
+
+        return if (response.status.isSuccess()) {
+            Resource.Success(response.body())
+        } else {
+            Resource.Failure(response.status.description)
+        }
+    }
+
+    suspend fun getEmployeeByID(username: String): Resource<GenericEmployee> {
+        val response = ktorClient.get {
+            url.path("print-employee-details")
+            url.parameters["arg"] = username
+        }
+
+        return if (response.status.isSuccess()) {
+            Resource.Success(response.body())
+        } else {
+            Resource.Failure(response.status.description)
+        }
+    }
+
+    // POST REQUESTS
+
+    suspend fun authenticate(credentials: Credentials): Boolean {
+        val response = ktorClient.post {
+            url.path("login/")
+            setBody(credentials)
+
+            Log.e(TAG, "authenticate: ${this.body}", )
+        }
+
+        return response.status.isSuccess()
+    }
+
+    suspend fun updateEnquiryStatus(inquiryID: String, updateAction: EnquiryUpdateAction): Boolean {
+
+
+        return ktorClient.post {
+            url.path("update-enquiry-status/")
+            url.parameters["inquiry_id"] = inquiryID
+            when (updateAction) {
+                is EnquiryUpdateAction.CoordinatorRejected -> {
+
+                }
+                is EnquiryUpdateAction.CoordinatorRequested -> TODO()
+                is EnquiryUpdateAction.CoordinatorTimeUp -> TODO()
+                is EnquiryUpdateAction.CoordinatorsAccepted -> TODO()
+                is EnquiryUpdateAction.FreelancersAccepted -> TODO()
+                is EnquiryUpdateAction.FreelancersFinalized -> TODO()
+                is EnquiryUpdateAction.FreelancersRejected -> TODO()
+                is EnquiryUpdateAction.FreelancersRequested -> TODO()
+                is EnquiryUpdateAction.FreelancersTimeUp -> TODO()
             }
-        }
+        }.status.isSuccess()
     }
 
-    suspend fun getProjectsByUsernameAndStatus(username: String, enquiryStatus: EnquiryStatus? = null): Resource.Success<List<Enquiry>> {
-        val projectStatusArg = if (enquiryStatus != null) "&arg2=${enquiryStatus.statusCode}" else ""
-        val url = "${BASE_URL}print-enquiry-details/?arg1=$username$projectStatusArg"
-        Log.e(TAG, "getProjectsByUsernameAndStatus: $url")
-        return Resource.Success(ktorClient.get(url).body())
+    suspend fun createEnquiry(enquiry: NewEnquiryHolder): Boolean {
+        return ktorClient.post {
+            url.path("status/")
+            setBody(enquiry)
+        }.status.isSuccess()
     }
 
-    suspend fun setOnlineStatus(username: String, status: Boolean) {
-        ktorClient.post("${BASE_URL}employee-status-update/") {
-            contentType(ContentType.Application.Json)
-            setBody(
-                JsonObject(
-                    mapOf(
-                        "employee_id" to JsonPrimitive(username), "is_online" to JsonPrimitive(status)
-                    )
-                )
-            )
-        }
+    suspend fun createEmployee(newUser: NewUser): Boolean {
+        return ktorClient.post {
+            url.path("status/")
+            setBody(newUser)
+        }.status.isSuccess()
+    }
+
+
+    suspend fun setOnlineStatus(username: String, status: Boolean): Boolean {
+        return ktorClient.post {
+            contentType(ContentType.Text.Plain)
+            url.path("employee-status-update")
+            url.parameters["employee_id"] = username
+            setBody(status)
+        }.status.isSuccess()
     }
 }
 

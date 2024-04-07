@@ -4,9 +4,10 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class Enquiry(
+data class NewEnquiryHolder(
     @SerialName("id")
     val id: Int,
+
     @SerialName("name")
     var name: String,
 
@@ -29,5 +30,5 @@ data class Enquiry(
     val reference: Boolean,
 
     @SerialName("status")
-    var status: EnquiryUpdateAction,
+    var statusObject: EnquiryUpdateAction,
 )
