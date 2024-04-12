@@ -24,23 +24,24 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.pb.pb_app.ui.AdminScreen
-import com.pb.pb_app.ui.CoordinatorScreen
-import com.pb.pb_app.ui.FreelancerScreen
 import com.pb.pb_app.ui.LoginScreen
 import com.pb.pb_app.ui.NewEmployeeScreen
 import com.pb.pb_app.ui.NewInquiryScreen
 import com.pb.pb_app.ui.theme.PBAppTheme
-import com.pb.pb_app.ui.viewmodels.MainViewModel
-import com.pb.pb_app.utils.models.Destination
-import com.pb.pb_app.utils.models.Destination.ADMIN_SCREEN
-import com.pb.pb_app.utils.models.Destination.COORDINATOR_SCREEN
-import com.pb.pb_app.utils.models.Destination.Companion.valueOf
-import com.pb.pb_app.utils.models.Destination.FREELANCER_SCREEN
-import com.pb.pb_app.utils.models.Destination.LOGIN_SCREEN
-import com.pb.pb_app.utils.models.Destination.NEW_EMPLOYEE_SCREEN
-import com.pb.pb_app.utils.models.Destination.NEW_INQUIRY_SCREEN
-import com.pb.pb_app.utils.models.employees.EmployeeRole.Companion.screen
+import com.pb.pb_app.viewmodels.MainViewModel
+import com.pb.pb_app.ui.enums.Destination
+import com.pb.pb_app.ui.enums.Destination.ADMIN_SCREEN
+import com.pb.pb_app.ui.enums.Destination.COORDINATOR_SCREEN
+import com.pb.pb_app.ui.enums.Destination.Companion.valueOf
+import com.pb.pb_app.ui.enums.Destination.FREELANCER_SCREEN
+import com.pb.pb_app.ui.enums.Destination.LOGIN_SCREEN
+import com.pb.pb_app.ui.enums.Destination.NEW_EMPLOYEE_SCREEN
+import com.pb.pb_app.ui.enums.Destination.NEW_INQUIRY_SCREEN
+import com.pb.pb_app.data.enums.EmployeeRole.Companion.screen
+import com.pb.pb_app.ui.enums.Destination.Companion.fromRoute
+import com.pb.pb_app.ui.screens.AdminScreen
+import com.pb.pb_app.ui.screens.CoordinatorScreen
+import com.pb.pb_app.ui.screens.FreelancerScreen
 
 private const val TAG = "MainActivity"
 
@@ -55,7 +56,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             PBAppTheme {
                 val navController = rememberNavController()
-                val currentDestination = navController.currentBackStackEntryAsState().value?.destination?.route?.valueOf() ?: "Login".valueOf()
+                val currentDestination = navController.currentBackStackEntryAsState().value?.destination?.route?.fromRoute() ?: "Login".fromRoute()
                 val startDestination = if (viewModel.loginRole == null) LOGIN_SCREEN else viewModel.loginRole!!.screen
                 val topBar = @Composable {
                     PBAppBar(currentDestination, { }, { }, {
@@ -103,8 +104,6 @@ fun PBAppBar(
     onNotificationIconClicked: () -> Unit,
     onLogout: () -> Unit,
 ) {
-
-
     when (destination) {
         LOGIN_SCREEN -> {
             LargeTopAppBar({ Text("Login") }, actions = {
@@ -113,7 +112,7 @@ fun PBAppBar(
 
         else -> {
             if (destination == ADMIN_SCREEN || destination == FREELANCER_SCREEN || destination == COORDINATOR_SCREEN) {
-                CenterAlignedTopAppBar(title = { Text("Home Screen") }, Modifier, {
+                CenterAlignedTopAppBar(title = { Text("Project Banao") }, Modifier, {
                     IconButton(onClick = onDrawerIconClicked) {
                         Icon(Icons.Default.Menu, "Sidebar Button")
                     }

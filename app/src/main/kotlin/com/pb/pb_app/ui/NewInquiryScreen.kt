@@ -2,17 +2,25 @@ package com.pb.pb_app.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AlarmAdd
+import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.House
+import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.Title
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -22,6 +30,7 @@ import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -32,12 +41,12 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.pb.pb_app.ui.viewmodels.NewInquiryViewModel
-import com.pb.pb_app.utils.Constants
-import com.pb.pb_app.utils.reusables.BigFormField
-import com.pb.pb_app.utils.reusables.PBMediumTopBar
-import com.pb.pb_app.utils.reusables.SingleLineFormField
-import com.pb.pb_app.utils.reusables.phoneNumberKeyboardOptions
+import com.pb.pb_app.data.Constants
+import com.pb.pb_app.ui.reusables.BigFormField
+import com.pb.pb_app.ui.reusables.PBMediumTopBar
+import com.pb.pb_app.ui.reusables.SingleLineFormField
+import com.pb.pb_app.ui.reusables.phoneNumberKeyboardOptions
+import com.pb.pb_app.viewmodels.NewInquiryViewModel
 
 private const val TAG = "NewEnquiryScreen"
 
@@ -60,18 +69,12 @@ private const val TAG = "NewEnquiryScreen"
 @Composable
 fun NewInquiryScreen(navController: NavController = rememberNavController()) {
     val viewModel: NewInquiryViewModel = viewModel(factory = NewInquiryViewModel.factory)
-    var shouldShowDeadlinePickerDialog by remember { mutableStateOf(false) }
-
-    if (shouldShowDeadlinePickerDialog) {
-        InquiryDeadlinePickerDialog(onDismissRequest = { shouldShowDeadlinePickerDialog = false }) {
-            viewModel.updateNewInquiry(deadlineMillis = it)
-            shouldShowDeadlinePickerDialog = false
-        }
-    }
 
     val isSaveButtonEnabled by viewModel.shouldEnableSaveButton.collectAsState()
 
-    Scaffold(Modifier.fillMaxSize(), topBar = { PBMediumTopBar("New Inquiry", isSaveButtonEnabled) { viewModel.createNewInquiry(); navController.navigateUp() } }) { paddingValues ->
+    Scaffold(
+        Modifier.fillMaxSize(),
+        topBar = { PBMediumTopBar("New Inquiry", isSaveButtonEnabled) { viewModel.createNewInquiry(); navController.navigateUp() } }) { paddingValues ->
         Column(
             Modifier
                 .fillMaxSize()
@@ -80,49 +83,75 @@ fun NewInquiryScreen(navController: NavController = rememberNavController()) {
             verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            val rowArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally)
-            val rowAlignment = Alignment.CenterVertically
-            val rowModifier = Modifier.fillMaxWidth()
+            val rowModifier = Modifier.padding(8.dp, 4.dp)
+            val arrangement = Arrangement.spacedBy(8.dp)
+            val iconModifier = Modifier
+                .padding(8.dp)
+                .size(32.dp)
+            var shouldShowDeadlinePickerDialog by remember { mutableStateOf(false) }
 
-            Row(rowModifier, rowArrangement, rowAlignment) {
-                SingleLineFormField(Modifier.weight(1F), onTextChange = { viewModel.updateNewInquiry(name = it) }, "Name")
-
-            }
-            Row(rowModifier, rowArrangement, rowAlignment) {
-                var isServicesExpanded by remember {
-                    mutableStateOf(false)
+            if (shouldShowDeadlinePickerDialog) {
+                InquiryDeadlinePickerDialog(onDismissRequest = { shouldShowDeadlinePickerDialog = false }) {
+                    viewModel.updateNewInquiry(deadlineMillis = it)
+                    shouldShowDeadlinePickerDialog = false
                 }
+            }
 
-                SingleLineFormField(Modifier.weight(1F), onTextChange = { viewModel.updateNewInquiry(contactNumber = it) }, "Contact Number", phoneNumberKeyboardOptions)
 
+            Row(rowModifier, arrangement) {
+                Icon(Icons.Default.Title, modifier = iconModifier, contentDescription = "new inquiry name icon")
+                SingleLineFormField(
+                    modifier = Modifier.weight(1F),
+                    onTextChange = { viewModel.updateNewInquiry(name = it) },
+                    placeholder = "Name"
+                )
                 IconButton(onClick = { shouldShowDeadlinePickerDialog = true }) {
-                    Icon(Icons.Default.AlarmAdd, contentDescription = "deadline picker")
-                }
-                TextButton(onClick = { isServicesExpanded = true }) {
-                    var serviceName by remember {
-                        mutableStateOf("")
-                    }
-
-                    Text(text = serviceName.ifBlank { "Pick service" })
-
-                    ServicesDropDown(isExpanded = isServicesExpanded, onDismissRequest = { isServicesExpanded = false }) {
-                        viewModel.updateNewInquiry(service = it); isServicesExpanded = false; serviceName = it
-                    }
+                    Icon(Icons.Default.CalendarMonth, "")
                 }
             }
 
-            BigFormField(onTextChange = { viewModel.updateNewInquiry(deliveryArea = it) }, placeholder = "Delivery Area")
+            Row(rowModifier, arrangement) {
+                Icon(Icons.Default.Phone, modifier = iconModifier, contentDescription = "new inquiry phone icon")
 
-            BigFormField(onTextChange = { viewModel.updateNewInquiry(description = it) }, "Description")
+                SingleLineFormField(
+                    modifier = Modifier.weight(1f),
+                    onTextChange = { viewModel.updateNewInquiry(contactNumber = it) },
+                    placeholder = "Contact Number",
+                    keyboardOptions = phoneNumberKeyboardOptions
+                )
+            }
+
+            ServicesChipList {
+                viewModel.updateNewInquiry(service = it)
+            }
+
+            Row(rowModifier.weight(1F), arrangement) {
+                Icon(Icons.Default.Description, modifier = iconModifier, contentDescription = "new inquiry description icon")
+                BigFormField(Modifier.fillMaxHeight(), onTextChange = { viewModel.updateNewInquiry(description = it) }, "Description")
+            }
+
+            Row(rowModifier.weight(1F), arrangement) {
+                Icon(Icons.Default.House, modifier = iconModifier, contentDescription = "new inquiry address icon")
+                BigFormField(Modifier.fillMaxHeight(), onTextChange = { viewModel.updateNewInquiry(deliveryArea = it) }, placeholder = "Delivery Area")
+            }
         }
     }
 }
 
 @Composable
-fun ServicesDropDown(isExpanded: Boolean, onDismissRequest: () -> Unit, onServiceSelected: (String) -> Unit) {
-    DropdownMenu(expanded = isExpanded, onDismissRequest = onDismissRequest) {
-        for (each in Constants.servicesList) {
-            DropdownMenuItem(text = { Text(each) }, onClick = { onServiceSelected(each) })
+fun ServicesChipList(onServiceSelected: (String) -> Unit) {
+    var selectedIndex by remember {
+        mutableIntStateOf(-1)
+    }
+
+    LazyRow(Modifier.padding(4.dp), contentPadding = PaddingValues(4.dp)) {
+        itemsIndexed(Constants.servicesList) { index: Int, item: String ->
+            FilterChip(
+                modifier = Modifier.padding(horizontal = 2.dp),
+                selected = selectedIndex == index,
+                onClick = { selectedIndex = index; onServiceSelected(item) },
+                label = { Text(text = item) },
+            )
         }
     }
 }

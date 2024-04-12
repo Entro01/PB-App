@@ -1,5 +1,5 @@
 <resources>
     <string name="app_name">PB-App</string>
-    <string name="shared_preferences_name">PBApp</string>
+    <string name="shared_preferences_name">private</string>
     <string name="credentials">login credentials</string>
 </resources>

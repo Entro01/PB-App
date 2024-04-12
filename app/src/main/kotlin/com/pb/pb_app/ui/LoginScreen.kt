@@ -31,17 +31,17 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.pb.pb_app.ui.viewmodels.LoginViewModel
-import com.pb.pb_app.utils.models.AuthenticationState
-import com.pb.pb_app.utils.models.Destination
-import com.pb.pb_app.utils.models.employees.EmployeeRole
-import com.pb.pb_app.utils.models.employees.EmployeeRole.Companion.fromEmployeeId
-import com.pb.pb_app.utils.reusables.PBPasswordVisualTransformation
-import com.pb.pb_app.utils.reusables.PBUsernameVisualTransformation
-import com.pb.pb_app.utils.reusables.pbPasswordKeyboardActions
-import com.pb.pb_app.utils.reusables.pbPasswordKeyboardOptions
-import com.pb.pb_app.utils.reusables.pbUsernameKeyboardActions
-import com.pb.pb_app.utils.reusables.pbUsernameKeyboardOptions
+import com.pb.pb_app.viewmodels.LoginViewModel
+import com.pb.pb_app.data.enums.AuthenticationState
+import com.pb.pb_app.ui.enums.Destination
+import com.pb.pb_app.data.enums.EmployeeRole
+import com.pb.pb_app.data.enums.EmployeeRole.Companion.fromEmployeeId
+import com.pb.pb_app.ui.reusables.PBPasswordVisualTransformation
+import com.pb.pb_app.ui.reusables.PBUsernameVisualTransformation
+import com.pb.pb_app.ui.reusables.pbPasswordKeyboardActions
+import com.pb.pb_app.ui.reusables.pbPasswordKeyboardOptions
+import com.pb.pb_app.ui.reusables.pbUsernameKeyboardActions
+import com.pb.pb_app.ui.reusables.pbUsernameKeyboardOptions
 
 
 private const val TAG = "LoginScreen"
