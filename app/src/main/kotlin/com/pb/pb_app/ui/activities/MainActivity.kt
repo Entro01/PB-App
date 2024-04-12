@@ -19,30 +19,32 @@ import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.pb.pb_app.ui.HomeScreen
+import com.pb.pb_app.ui.AdminScreen
+import com.pb.pb_app.ui.CoordinatorScreen
+import com.pb.pb_app.ui.FreelancerScreen
 import com.pb.pb_app.ui.LoginScreen
+import com.pb.pb_app.ui.NewEmployeeScreen
+import com.pb.pb_app.ui.NewInquiryScreen
 import com.pb.pb_app.ui.theme.PBAppTheme
 import com.pb.pb_app.ui.viewmodels.MainViewModel
-import com.pb.pb_app.utils.Destination
-import com.pb.pb_app.utils.Destination.HOME_SCREEN
-import com.pb.pb_app.utils.Destination.LOGIN_SCREEN
-import com.pb.pb_app.utils.Destination.NEW_EMPLOYEE_SCREEN
-import com.pb.pb_app.utils.Destination.NEW_INQUIRY_SCREEN
-import com.pb.pb_app.utils.models.employees.Admin
+import com.pb.pb_app.utils.models.Destination
+import com.pb.pb_app.utils.models.Destination.ADMIN_SCREEN
+import com.pb.pb_app.utils.models.Destination.COORDINATOR_SCREEN
+import com.pb.pb_app.utils.models.Destination.Companion.valueOf
+import com.pb.pb_app.utils.models.Destination.FREELANCER_SCREEN
+import com.pb.pb_app.utils.models.Destination.LOGIN_SCREEN
+import com.pb.pb_app.utils.models.Destination.NEW_EMPLOYEE_SCREEN
+import com.pb.pb_app.utils.models.Destination.NEW_INQUIRY_SCREEN
+import com.pb.pb_app.utils.models.employees.EmployeeRole.Companion.screen
 
 private const val TAG = "MainActivity"
 
 class MainActivity : ComponentActivity() {
-
-
     private val viewModel: MainViewModel by viewModels {
         MainViewModel.factory
     }
@@ -53,17 +55,26 @@ class MainActivity : ComponentActivity() {
         setContent {
             PBAppTheme {
                 val navController = rememberNavController()
-                val currentDestination = Destination.getDestinationByRoute(navController.currentBackStackEntryAsState().value?.destination?.route ?: "Home")
-                val startDestination = remember { if (viewModel.loggedInEmployeeUsername.isNullOrBlank()) LOGIN_SCREEN else HOME_SCREEN }
-                val userResource by viewModel.loggedInEmployee.collectAsState()
+                val currentDestination = navController.currentBackStackEntryAsState().value?.destination?.route?.valueOf() ?: "Login".valueOf()
+                val startDestination = if (viewModel.loginRole == null) LOGIN_SCREEN else viewModel.loginRole!!.screen
                 val topBar = @Composable {
-                    PBAppBar(currentDestination, { }, { }, { viewModel.logout() })
+                    PBAppBar(currentDestination, { }, { }, {
+                        viewModel.logout()
+                        navController.popBackStack()
+                        navController.navigate(LOGIN_SCREEN.route)
+                    })
                 }
                 val floatingActionButton = @Composable {
-                    if (userResource.data is Admin)
-                        ExtendedFloatingActionButton(text = { Text(text = "New Inquiry") },
-                            icon = { Icon(Icons.Default.Add, contentDescription = "Add Inquiry Button") },
-                            onClick = { navController.navigate(NEW_INQUIRY_SCREEN.route) })
+                    when (currentDestination) {
+                        ADMIN_SCREEN -> {
+                            ExtendedFloatingActionButton(text = { Text(text = "New Inquiry") },
+                                icon = { Icon(Icons.Default.Add, contentDescription = "Add Inquiry Button") },
+                                onClick = { navController.navigate(NEW_INQUIRY_SCREEN.route) })
+                        }
+
+                        else -> {}
+                    }
+
                 }
 
                 Scaffold(Modifier, topBar = topBar, floatingActionButton = floatingActionButton) { paddingValues ->
@@ -71,15 +82,11 @@ class MainActivity : ComponentActivity() {
                         composable(LOGIN_SCREEN.route) {
                             LoginScreen(navController)
                         }
-                        composable(HOME_SCREEN.route) {
-                            HomeScreen(userResource, navController)
-                        }
-                        composable(NEW_INQUIRY_SCREEN.route) {
-                            //NewEnquiryScreen()
-                        }
-                        composable(NEW_EMPLOYEE_SCREEN.route) {
-                            //NewEmployeeScreen()
-                        }
+                        composable(ADMIN_SCREEN.route) { AdminScreen(navController) }
+                        composable(COORDINATOR_SCREEN.route) { CoordinatorScreen(navController) }
+                        composable(FREELANCER_SCREEN.route) { FreelancerScreen(navController) }
+                        composable(NEW_INQUIRY_SCREEN.route) { NewInquiryScreen(navController) }
+                        composable(NEW_EMPLOYEE_SCREEN.route) { NewEmployeeScreen()  }
                     }
                 }
             }
@@ -99,31 +106,26 @@ fun PBAppBar(
 
 
     when (destination) {
-        HOME_SCREEN -> {
-            CenterAlignedTopAppBar(title = { Text("Home Screen") }, Modifier, {
-                IconButton(onClick = onDrawerIconClicked) {
-                    Icon(Icons.Default.Menu, "Sidebar Button")
-                }
-            }, {
-                IconButton(onClick = onNotificationIconClicked) {
-                    Icon(Icons.Default.Notifications, "Notifications Button")
-                }
-                IconButton(onClick = onLogout) {
-                    Icon(Icons.AutoMirrored.Default.Logout, "Notifications Button")
-                }
-            })
-        }
-
         LOGIN_SCREEN -> {
             LargeTopAppBar({ Text("Login") }, actions = {
-                IconButton(onClick = { }) {
-
-                }
             })
         }
 
         else -> {
-
+            if (destination == ADMIN_SCREEN || destination == FREELANCER_SCREEN || destination == COORDINATOR_SCREEN) {
+                CenterAlignedTopAppBar(title = { Text("Home Screen") }, Modifier, {
+                    IconButton(onClick = onDrawerIconClicked) {
+                        Icon(Icons.Default.Menu, "Sidebar Button")
+                    }
+                }, {
+                    IconButton(onClick = onNotificationIconClicked) {
+                        Icon(Icons.Default.Notifications, "Notifications Button")
+                    }
+                    IconButton(onClick = onLogout) {
+                        Icon(Icons.AutoMirrored.Default.Logout, "Notifications Button")
+                    }
+                })
+            }
         }
     }
 }

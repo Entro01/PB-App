@@ -1,6 +1,5 @@
 <resources>
     <string name="app_name">PB-App</string>
     <string name="shared_preferences_name">PBApp</string>
-    <string name="login_status">Login Status</string>
-    <string name="employee_id">employee id</string>
+    <string name="credentials">login credentials</string>
 </resources>

@@ -90,4 +90,5 @@ dependencies {
     implementation(libs.hilt.android)
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.androidx.material3.icons.extended)
+    implementation(libs.ktor.client.auth)
 }

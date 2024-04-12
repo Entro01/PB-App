@@ -7,7 +7,7 @@ import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.AP
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import com.pb.pb_app.utils.RepositoryImpl
-import com.pb.pb_app.utils.interfaces.Repository
+import com.pb.pb_app.utils.models.AuthenticationState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -20,15 +20,9 @@ class LoginViewModel(context: Context) : ViewModel() {
                 return LoginViewModel(extras[APPLICATION_KEY]!!.applicationContext) as T
             }
         }
-
-        enum class AuthenticationState(val isError: Boolean?) {
-            LOGIN_SUCCESS(false),
-            AUTHENTICATION_FAILURE(true),
-            LOGIN_UNDONE(false)
-        }
     }
 
-    private val repository: Repository = RepositoryImpl(context)
+    private val repository = RepositoryImpl(context)
 
     private val _shouldShowPassword = MutableStateFlow(false)
     val shouldShowPassword get() = _shouldShowPassword as StateFlow<Boolean>

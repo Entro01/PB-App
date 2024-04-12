@@ -1,21 +1,23 @@
 package com.pb.pb_app.utils
 
-import android.provider.Telephony.Carriers.PORT
+
 import android.util.Log
-import com.pb.pb_app.utils.models.Credentials
 import com.pb.pb_app.utils.models.Resource
+import com.pb.pb_app.utils.models.Token
+import com.pb.pb_app.utils.models.employees.BaseEmployee
 import com.pb.pb_app.utils.models.employees.Coordinator
 import com.pb.pb_app.utils.models.employees.Freelancer
-import com.pb.pb_app.utils.models.employees.GenericEmployee
-import com.pb.pb_app.utils.models.employees.NewUser
-import com.pb.pb_app.utils.models.projects.Enquiry
-import com.pb.pb_app.utils.models.projects.EnquiryUpdateAction
-import com.pb.pb_app.utils.models.projects.EnquiryStatus
-import com.pb.pb_app.utils.models.projects.NewEnquiryHolder
+import com.pb.pb_app.utils.models.employees.NewEmployee
+import com.pb.pb_app.utils.models.projects.Inquiry
+import com.pb.pb_app.utils.models.projects.InquiryUpdateAction
+import com.pb.pb_app.utils.models.projects.NewInquiry
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.android.Android
 import io.ktor.client.plugins.DefaultRequest
+import io.ktor.client.plugins.auth.Auth
+import io.ktor.client.plugins.auth.providers.BearerTokens
+import io.ktor.client.plugins.auth.providers.bearer
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
 import io.ktor.client.request.post
@@ -26,34 +28,40 @@ import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import io.ktor.http.path
 import io.ktor.serialization.kotlinx.json.json
-import kotlinx.serialization.json.Json
 
 private const val TAG = "KtorServerConnector"
 
-object KtorServerConnector {
-    private const val HOST = "174a-103-248-172-84.ngrok-free.app"
+
+class KtorServerConnector(token: Token) {
 
     private val ktorClient = HttpClient(Android) {
+        Auth {
+            bearer {
+                loadTokens {
+                    BearerTokens(token.secret, token.secret)
+                }
+            }
+        }
+
         install(DefaultRequest) {
             contentType(ContentType.Application.Json)
             url {
-                protocol = URLProtocol.HTTPS
+                protocol = URLProtocol.HTTP
                 host = HOST
+                port = PORT
             }
         }
+
         install(ContentNegotiation) {
-            json(Json {
-                isLenient = true
-                prettyPrint = true
-            })
+            json()
         }
     }
 
     // GET REQUESTS
     suspend fun getCoordinators(): Resource<List<Coordinator>> {
         val response = ktorClient.get {
-            url.path("print-employee-details")
-            url.parameters["role_or_employee_id"] = "Coordinator"
+            url.path("employees")
+            url.parameters["role"] = "Coordinator"
         }
 
         return if (response.status.isSuccess()) {
@@ -65,9 +73,10 @@ object KtorServerConnector {
 
     suspend fun getFreelancers(): Resource<List<Freelancer>> {
         val response = ktorClient.get {
-            url.path("print-employee-details")
-            url.parameters["role_or_employee_id"] = "Freelancer"
+            url.path("employees")
+            url.parameters["role"] = "Freelancer"
         }
+        Log.e(TAG, "getFreelancers: ${response.status.value}")
 
         return if (response.status.isSuccess()) {
             Resource.Success(response.body())
@@ -76,18 +85,13 @@ object KtorServerConnector {
         }
     }
 
-    suspend fun getEnquiriesByUsernameAndStatus(username: String, vararg enquiryStatuses: EnquiryStatus): Resource<List<Enquiry>> {
-        val statuses = StringBuilder()
-
-        for (each in enquiryStatuses) {
-            statuses.append(each.name)
-        }
+    suspend fun getInquiriesByStatus(vararg inquiryStatuses: String): Resource<List<Inquiry>> {
+        val statuses = inquiryStatuses.joinToString(",") { it }
 
         val response = ktorClient.get {
             contentType(ContentType.Application.Json)
-            url.path("print-enquiry-details")
-            url.parameters["username"] = username
-            if (statuses.isNotEmpty()) url.parameters["status"] = statuses.toString()
+            url.path("inquiries")
+            if (statuses.isNotEmpty()) url.parameters["status"] = statuses
         }
 
         return if (response.status.isSuccess()) {
@@ -97,10 +101,10 @@ object KtorServerConnector {
         }
     }
 
-    suspend fun getEmployeeByID(username: String): Resource<GenericEmployee> {
+    suspend fun getEmployeeById(employeeId: String?): Resource<BaseEmployee> {
         val response = ktorClient.get {
-            url.path("print-employee-details")
-            url.parameters["arg"] = username
+            url.path("employees")
+            if (employeeId != null) url.parameters["employee_id"] = employeeId
         }
 
         return if (response.status.isSuccess()) {
@@ -111,62 +115,49 @@ object KtorServerConnector {
     }
 
     // POST REQUESTS
+    suspend fun createEnquiry(enquiry: NewInquiry): Boolean {
+        val result = ktorClient.post {
+            url.path("inquiries", "create")
+            setBody(enquiry)
+        }
+        Log.e(TAG, "createEnquiry: ${result.status}")
+        return result.status.isSuccess()
+    }
 
-    suspend fun authenticate(credentials: Credentials): Boolean {
+    suspend fun createEmployee(newEmployee: NewEmployee): Boolean {
+        return ktorClient.post {
+            url.path("employees", "create")
+            setBody(newEmployee)
+        }.status.isSuccess()
+    }
+
+    suspend fun performInquiryUpdateAction(updateAction: InquiryUpdateAction): Boolean {
         val response = ktorClient.post {
-            url.path("login/")
-            setBody(credentials)
-
-            Log.e(TAG, "authenticate: ${this.body}", )
+            url.path("inquiries", "update-inquiry")
+            setBody(updateAction)
         }
 
         return response.status.isSuccess()
     }
 
-    suspend fun updateEnquiryStatus(inquiryID: String, updateAction: EnquiryUpdateAction): Boolean {
 
-
-        return ktorClient.post {
-            url.path("update-enquiry-status/")
-            url.parameters["inquiry_id"] = inquiryID
-            when (updateAction) {
-                is EnquiryUpdateAction.CoordinatorRejected -> {
-
-                }
-                is EnquiryUpdateAction.CoordinatorRequested -> TODO()
-                is EnquiryUpdateAction.CoordinatorTimeUp -> TODO()
-                is EnquiryUpdateAction.CoordinatorsAccepted -> TODO()
-                is EnquiryUpdateAction.FreelancersAccepted -> TODO()
-                is EnquiryUpdateAction.FreelancersFinalized -> TODO()
-                is EnquiryUpdateAction.FreelancersRejected -> TODO()
-                is EnquiryUpdateAction.FreelancersRequested -> TODO()
-                is EnquiryUpdateAction.FreelancersTimeUp -> TODO()
-            }
-        }.status.isSuccess()
-    }
-
-    suspend fun createEnquiry(enquiry: NewEnquiryHolder): Boolean {
-        return ktorClient.post {
-            url.path("status/")
-            setBody(enquiry)
-        }.status.isSuccess()
-    }
-
-    suspend fun createEmployee(newUser: NewUser): Boolean {
-        return ktorClient.post {
-            url.path("status/")
-            setBody(newUser)
-        }.status.isSuccess()
-    }
-
-
-    suspend fun setOnlineStatus(username: String, status: Boolean): Boolean {
+    suspend fun setEmployeeStatus(employeeId: String, status: Boolean): Boolean {
         return ktorClient.post {
             contentType(ContentType.Text.Plain)
-            url.path("employee-status-update")
-            url.parameters["employee_id"] = username
+            url.path("employee-status", "update")
+            url.parameters["employee_id"] = employeeId
             setBody(status)
         }.status.isSuccess()
+    }
+
+    suspend fun getSelf(): Resource<BaseEmployee> {
+        val response = ktorClient.get {
+            url {
+                path("employees", "self")
+            }
+        }
+
+        return Resource.Success(response.body())
     }
 }
 

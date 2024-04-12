@@ -6,11 +6,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import com.pb.pb_app.utils.RepositoryImpl
-import com.pb.pb_app.utils.interfaces.Repository
-import com.pb.pb_app.utils.models.Resource
-import com.pb.pb_app.utils.models.employees.GenericEmployee
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import com.pb.pb_app.utils.models.employees.EmployeeRole.Companion.fromEmployeeId
 import kotlinx.coroutines.launch
 
 class MainViewModel(context: Context) : ViewModel() {
@@ -22,32 +18,13 @@ class MainViewModel(context: Context) : ViewModel() {
         }
     }
 
-    private val repository: Repository = RepositoryImpl(context)
+    private val repository = RepositoryImpl(context)
 
-    val loggedInEmployeeUsername: String?
-        get() = repository.getLoggedInUserName()
-
-    private val _loggedInEmployee = MutableStateFlow<Resource<GenericEmployee>>(Resource.Loading())
-    val loggedInEmployee: StateFlow<Resource<GenericEmployee>>
-        get() = _loggedInEmployee
-
-    init {
-        viewModelScope.launch {
-            val username= loggedInEmployeeUsername
-            if (!username.isNullOrBlank()) {
-                viewModelScope.launch {
-                    _loggedInEmployee.emit(repository.getEmployeeByUsername(username))
-                }
-            } else {
-                _loggedInEmployee.emit(Resource.Failure("User Not Logged In"))
-            }
-        }
-    }
+    val loginRole = repository.retrieveCredentials()?.elementAt(0)?.fromEmployeeId()
 
     fun logout() {
         viewModelScope.launch {
             repository.logout()
-            _loggedInEmployee.emit(Resource.Failure("User not logged in"))
         }
     }
 }

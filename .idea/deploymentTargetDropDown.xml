@@ -2,19 +2,19 @@
 <project version="4">
   <component name="deploymentTargetDropDown">
     <value>
-      <entry key="ConfirmEmployeeTextField">
-        <State />
-      </entry>
       <entry key="EnquiryActionLayout">
         <State />
       </entry>
       <entry key="EnquiryActionLayout (1)">
         <State />
       </entry>
-      <entry key="EnquiryCarousel">
+      <entry key="FreelancerScreen">
         <State />
       </entry>
-      <entry key="PBBooleanSwitch">
+      <entry key="NewEmployeeScreen">
+        <State />
+      </entry>
+      <entry key="NewInquiryScreen">
         <State />
       </entry>
       <entry key="app">
@@ -30,7 +30,7 @@
               </deviceKey>
             </Target>
           </targetSelectedWithDropDown>
-          <timeTargetWasSelectedWithDropDown value="2024-04-07T13:49:01.485712017Z" />
+          <timeTargetWasSelectedWithDropDown value="2024-04-10T21:57:19.491043328Z" />
           <targetsSelectedWithDialog>
             <Target>
               <type value="QUICK_BOOT_TARGET" />
