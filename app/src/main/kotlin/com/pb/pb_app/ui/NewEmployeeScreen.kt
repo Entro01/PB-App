@@ -10,9 +10,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Newspaper
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.RememberMe
@@ -20,6 +20,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -37,6 +38,8 @@ import androidx.navigation.compose.rememberNavController
 import com.pb.pb_app.data.enums.EmployeeRole
 import com.pb.pb_app.ui.reusables.PBMediumTopBar
 import com.pb.pb_app.ui.reusables.SingleLineFormField
+import com.pb.pb_app.ui.reusables.emailAddressKeyboardOptions
+import com.pb.pb_app.ui.reusables.phoneNumberKeyboardOptions
 import com.pb.pb_app.viewmodels.NewEmployeeViewModel
 
 
@@ -44,12 +47,14 @@ import com.pb.pb_app.viewmodels.NewEmployeeViewModel
 @Composable
 fun NewEmployeeScreen(navController: NavController = rememberNavController()) {
     val viewModel: NewEmployeeViewModel = viewModel(factory = NewEmployeeViewModel.factory)
-    var shouldExpandRolePicker by remember {
-        mutableStateOf(false)
-    }
-
     val isSaveButtonEnabled by viewModel.shouldEnableSaveButton.collectAsState()
+    val newEmployee by viewModel.newEmployee.collectAsState()
 
+    val roleSpecificString = when (newEmployee.role) {
+        EmployeeRole.ADMIN -> "PB-AM-"
+        EmployeeRole.COORDINATOR -> "PB-PC-"
+        EmployeeRole.FREELANCER -> "PB-FR-"
+    }
 
     Scaffold(
         Modifier.fillMaxSize(),
@@ -57,7 +62,7 @@ fun NewEmployeeScreen(navController: NavController = rememberNavController()) {
         Column(
             Modifier
                 .fillMaxSize()
-                .padding(vertical = paddingValues.calculateTopPadding())
+                .padding(top = paddingValues.calculateTopPadding())
                 .padding(bottom = 6.dp, start = 6.dp, end = 6.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.Top),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -70,7 +75,11 @@ fun NewEmployeeScreen(navController: NavController = rememberNavController()) {
 
             Row(rowModifier, arrangement) {
                 Icon(Icons.Default.RememberMe, modifier = iconModifier, contentDescription = "")
-                SingleLineFormField(modifier = Modifier.fillMaxWidth(), onTextChange = { viewModel.updateNewEmployee(employeeId = it) }, placeholder = "Employee ID")
+                UsernameFormField(
+                    modifier = Modifier.fillMaxWidth(),
+                    roleSpecificString = roleSpecificString,
+                    onTextChange = { viewModel.updateNewEmployee(employeeId = it) },
+                )
             }
 
             EmployeeRoleChipList {
@@ -86,17 +95,44 @@ fun NewEmployeeScreen(navController: NavController = rememberNavController()) {
 
             Row(rowModifier, arrangement) {
                 Icon(Icons.Default.Phone, modifier = iconModifier, contentDescription = "new employee phone number")
-                SingleLineFormField(modifier = Modifier.fillMaxWidth(), onTextChange = { viewModel.updateNewEmployee(contactNumber = it) }, placeholder = "Phone number")
+                SingleLineFormField(
+                    modifier = Modifier.fillMaxWidth(),
+                    onTextChange = { viewModel.updateNewEmployee(contactNumber = it) },
+                    placeholder = "Phone number",
+                    keyboardOptions = phoneNumberKeyboardOptions
+                )
             }
 
             Row(rowModifier, arrangement) {
                 Icon(Icons.Default.Email, modifier = iconModifier, contentDescription = "")
-                SingleLineFormField(modifier = Modifier.fillMaxWidth(), onTextChange = { viewModel.updateNewEmployee(emailAddress = it) }, placeholder = "Email Address")
+                SingleLineFormField(
+                    modifier = Modifier.fillMaxWidth(),
+                    onTextChange = { viewModel.updateNewEmployee(emailAddress = it) },
+                    placeholder = "Email Address",
+                    keyboardOptions = emailAddressKeyboardOptions
+                )
             }
         }
     }
 }
 
+
+@Composable
+fun UsernameFormField(
+    modifier: Modifier = Modifier, roleSpecificString: String, onTextChange: (String) -> Unit
+) {
+    var employeeId by remember {
+        mutableStateOf("")
+    }
+
+    TextField(
+        value = employeeId,
+        prefix = { Text(text = roleSpecificString) },
+        onValueChange = { employeeId = it; onTextChange(employeeId) },
+        modifier = modifier,
+        singleLine = true
+    )
+}
 
 @Composable
 fun EmployeeRoleChipList(onServiceSelected: (EmployeeRole) -> Unit) {

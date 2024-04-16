@@ -1,6 +1,7 @@
 package com.pb.pb_app.viewmodels
 
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
@@ -11,6 +12,8 @@ import com.pb.pb_app.data.enums.AuthenticationState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+
+private const val TAG = "LoginViewModel"
 
 class LoginViewModel(context: Context) : ViewModel() {
 
@@ -36,7 +39,10 @@ class LoginViewModel(context: Context) : ViewModel() {
 
     fun authenticate() {
         viewModelScope.launch {
-            if (repository.login(_username.value, _password.value)) {
+            Log.e(TAG, "authenticate")
+            val result = repository.login(_username.value, _password.value)
+            Log.e(TAG, "authenticate2 $result")
+            if (result) {
                 _authenticationState.emit(AuthenticationState.LOGIN_SUCCESS)
             } else {
                 _authenticationState.emit(AuthenticationState.AUTHENTICATION_FAILURE)

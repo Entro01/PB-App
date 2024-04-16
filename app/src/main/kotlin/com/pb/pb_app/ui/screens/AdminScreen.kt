@@ -1,5 +1,6 @@
 package com.pb.pb_app.ui.screens
 
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -12,6 +13,7 @@ import com.pb.pb_app.ui.enums.Destination
 import com.pb.pb_app.viewmodels.AdminViewModel
 import com.pb.pb_app.viewmodels.HomeViewModel
 
+private const val TAG = "AdminScreen"
 
 @Composable
 fun AdminScreen(navController: NavController) {
@@ -22,22 +24,42 @@ fun AdminScreen(navController: NavController) {
     val urgentInquiries by viewModel.urgentInquiries.collectAsState()
     val miscInquiries by viewModel.miscInquiries.collectAsState()
 
-    if (self !is Resource.Success) return
-    if (coordinators !is Resource.Success) return
-    if (freelancers !is Resource.Success) return
-    if (urgentInquiries !is Resource.Success) return
-    if (miscInquiries !is Resource.Success) return
+    if (self !is Resource.Success) {
+        Log.e(TAG, "AdminScreen: 1")
+        return
+    }
+    if (coordinators !is Resource.Success) {
+        Log.e(TAG, "AdminScreen: ${(coordinators as Resource.Failure).message}")
 
-    CommonLayout(name = self.data!!.name,
+        return
+    }
+    if (freelancers !is Resource.Success) {
+        Log.e(TAG, "AdminScreen: 3")
+
+        return
+    }
+    if (urgentInquiries !is Resource.Success) {
+        Log.e(TAG, "AdminScreen: 4")
+
+        return
+    }
+    if (miscInquiries !is Resource.Success) {
+        Log.e(TAG, "AdminScreen: 1")
+
+        return
+    }
+
+    CommonLayout(
+        name = self.data!!.name,
         role = EmployeeRole.ADMIN,
         freelancers = freelancers.data,
         coordinators = coordinators.data,
-        miscInquiries = miscInquiries.data,
+        miscInquiries = miscInquiries.data!!,
         urgentInquiries = urgentInquiries.data!!,
         onNewEmployeeClicked = { navController.navigate(Destination.NEW_EMPLOYEE_SCREEN.route) },
-        onCoordinatorSelected = { coordinatorId -> viewModel.appendCoordinator(coordinatorId) },
+        onCoordinatorSelected = { inquiryId, coordinatorId -> viewModel.assignCoordinator(coordinatorId, inquiryId) },
         onInquiryDeleted = { inquiryId -> viewModel.deleteInquiry(inquiryId) },
-        onDialogFinished = { viewModel.assignCoordinator(it, System.currentTimeMillis()); viewModel.selectedCoordinators.clear() }
+        onTagsAdded = { inquiryId, tags -> viewModel.markResolved(inquiryId, tags) }
     )
 
 }

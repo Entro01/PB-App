@@ -18,9 +18,7 @@ internal constructor(context: Context) : HomeViewModel() {
     override val repository = RepositoryImpl(context)
     override val self: MutableStateFlow<Resource<BaseEmployee>> = MutableStateFlow(Resource.Loading())
     override val urgentInquiries: MutableStateFlow<Resource<List<Inquiry>>> = MutableStateFlow(Resource.Loading())
-    override val miscInquiries: MutableStateFlow<Resource<List<Inquiry>>>
-        get() = TODO("Not yet implemented")
-
+    override val miscInquiries: MutableStateFlow<Resource<List<Inquiry>>> = MutableStateFlow(Resource.Loading())
 
     init {
         with(viewModelScope) {
@@ -34,6 +32,13 @@ internal constructor(context: Context) : HomeViewModel() {
             launch {
                 while (isActive) {
                     urgentInquiries.emit(repository.getUrgentInquiries())
+                    delay(2000)
+                }
+            }
+
+            launch {
+                while (isActive) {
+                    miscInquiries.emit(repository.getMiscInquiries())
                     delay(2000)
                 }
             }
@@ -56,7 +61,7 @@ internal constructor(context: Context) : HomeViewModel() {
 
     fun setOnlineStatus(status: Boolean) {
         viewModelScope.launch {
-            repository.setEmployeeStatus(self.value.data!!.employeeId, status)
+            repository.setSelfStatus(status)
         }
     }
 }

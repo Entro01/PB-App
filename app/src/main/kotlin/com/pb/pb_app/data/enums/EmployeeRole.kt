@@ -8,11 +8,22 @@ enum class EmployeeRole() {
     ADMIN, COORDINATOR, FREELANCER;
 
     companion object {
-        fun String.fromEmployeeId(): EmployeeRole {
-            return if (this.startsWith("PB-AM")) ADMIN
-            else if (this.startsWith("PB-PC")) COORDINATOR
-            else if (this.startsWith("PB-FR")) FREELANCER
-            else throw IllegalArgumentException("Not a valid username")
+        fun String.parseEmployeeId(): EmployeeRole {
+            return when {
+                this.startsWith("PB-AM") -> ADMIN
+                this.startsWith("PB-PC") -> COORDINATOR
+                this.startsWith("PB-FR") -> FREELANCER
+                else -> throw IllegalArgumentException("Not a valid username")
+            }
+        }
+
+        fun String.fromString() {
+            val string = this.lowercase()
+            when (string) {
+                "admin" -> ADMIN
+                "coordinator" -> COORDINATOR
+                "freelancer" -> FREELANCER
+            }
         }
 
         val EmployeeRole.screen: Destination

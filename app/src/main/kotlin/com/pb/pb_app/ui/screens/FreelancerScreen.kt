@@ -19,18 +19,22 @@ import com.pb.pb_app.viewmodels.HomeViewModel
 fun FreelancerScreen(navController: NavController = rememberNavController()) {
     val viewModel: FreelancerViewModel = viewModel(factory = HomeViewModel.factory(EmployeeRole.FREELANCER))
     val self by viewModel.self.collectAsState()
-    val newInquiries by (viewModel).urgentInquiries.collectAsState()
+    val urgentInquiries by viewModel.urgentInquiries.collectAsState()
+    val miscInquiries by viewModel.miscInquiries.collectAsState()
 
     if (self !is Resource.Success) return
-    if (newInquiries !is Resource.Success<List<Inquiry>>) return
+    if (urgentInquiries !is Resource.Success) return
+    if (miscInquiries !is Resource.Success) return
 
     CommonLayout(name = self.data!!.name,
         role = EmployeeRole.FREELANCER,
         freelancers = null,
         coordinators = null,
-        miscInquiries = null,
-        urgentInquiries = newInquiries.data!!,
+        miscInquiries = miscInquiries.data!!,
+        urgentInquiries = urgentInquiries.data!!,
         onNewEmployeeClicked = {},
         onOnlineStatusToggled = { viewModel.setOnlineStatus(it) },
-        onInquiryAcceptedByFreelancer = { viewModel.acceptUrgentInquiry(it) })
+        onInquiryAcceptedByFreelancer = { viewModel.acceptUrgentInquiry(it) },
+        onInquiryRejected = { viewModel.rejectUrgentInquiry(it) }
+    )
 }

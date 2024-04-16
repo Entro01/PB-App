@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
 data class NewInquiry(
     override val name: String,
     override val description: String,
-    override val assigningMillis: Long,
+    override val creationTime: Long,
     override val deadlineMillis: Long,
     override val service: String,
     override val contactNumber: String,

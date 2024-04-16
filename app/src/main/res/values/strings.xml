@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">PB-App</string>
     <string name="shared_preferences_name">private</string>
-    <string name="credentials">login credentials</string>
+    <string name="secret_key">secret</string>
+    <string name="username_key">username</string>
 </resources>

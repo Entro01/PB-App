@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import com.pb.pb_app.data.RepositoryImpl
-import com.pb.pb_app.data.enums.EmployeeRole.Companion.fromEmployeeId
+import com.pb.pb_app.data.enums.EmployeeRole.Companion.parseEmployeeId
 import kotlinx.coroutines.launch
 
 class MainViewModel(context: Context) : ViewModel() {
@@ -20,7 +20,7 @@ class MainViewModel(context: Context) : ViewModel() {
 
     private val repository = RepositoryImpl(context)
 
-    val loginRole = repository.retrieveCredentials()?.elementAt(0)?.fromEmployeeId()
+    val loginRole = repository.retrieveCredentials()?.first?.parseEmployeeId()
 
     fun logout() {
         viewModelScope.launch {

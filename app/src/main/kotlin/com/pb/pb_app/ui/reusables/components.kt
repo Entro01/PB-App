@@ -52,6 +52,7 @@ val pbUsernameKeyboardOptions = KeyboardOptions(
     KeyboardType.Text,
     ImeAction.Next,
 )
+
 val pbUsernameKeyboardActions: KeyboardActions
     @Composable get() {
         val focusManager = LocalFocusManager.current
@@ -60,6 +61,7 @@ val pbUsernameKeyboardActions: KeyboardActions
             focusManager.moveFocus(FocusDirection.Next)
         })
     }
+
 val pbPasswordKeyboardActions: KeyboardActions
     @Composable get() {
         val localKeyboardControllerManager = LocalSoftwareKeyboardController.current

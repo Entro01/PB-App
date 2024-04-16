@@ -10,6 +10,7 @@ import com.pb.pb_app.data.RepositoryImpl
 import com.pb.pb_app.data.enums.EmployeeRole
 import com.pb.pb_app.data.models.employees.NewEmployee
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class NewEmployeeViewModel(context: Context) : ViewModel() {
@@ -23,13 +24,14 @@ class NewEmployeeViewModel(context: Context) : ViewModel() {
 
     val shouldEnableSaveButton = MutableStateFlow(false)
 
-    private val newEmployee = MutableStateFlow(NewEmployee("", "", "", "", false, EmployeeRole.FREELANCER))
+    private val _newEmployee = MutableStateFlow(NewEmployee("", "", "", "", false, EmployeeRole.FREELANCER))
+    val newEmployee get() = _newEmployee as StateFlow<NewEmployee>
 
     private val repository = RepositoryImpl(context)
 
     init {
         viewModelScope.launch {
-            newEmployee.collect {
+            _newEmployee.collect {
                 shouldEnableSaveButton.emit(
                     it.employeeId.isNotEmpty() && it.name.isNotEmpty() && it.emailAddress.isNotEmpty() && it.contactNumber.isNotEmpty()
                 )
@@ -39,19 +41,19 @@ class NewEmployeeViewModel(context: Context) : ViewModel() {
 
     fun createNewEmployee() {
         viewModelScope.launch {
-            repository.createNewEmployee(newEmployee.value)
+            repository.createNewEmployee(_newEmployee.value)
         }
     }
 
     fun updateNewEmployee(
-        employeeId: String = newEmployee.value.employeeId,
-        name: String = newEmployee.value.name,
-        emailAddress: String = newEmployee.value.emailAddress,
-        contactNumber: String = newEmployee.value.contactNumber,
-        role: EmployeeRole = newEmployee.value.role
+        employeeId: String = _newEmployee.value.employeeId,
+        name: String = _newEmployee.value.name,
+        emailAddress: String = _newEmployee.value.emailAddress,
+        contactNumber: String = _newEmployee.value.contactNumber,
+        role: EmployeeRole = _newEmployee.value.role
     ) {
         viewModelScope.launch {
-            newEmployee.emit(NewEmployee(employeeId, name, emailAddress, contactNumber, false, role))
+            _newEmployee.emit(NewEmployee(employeeId, name, emailAddress, contactNumber, false, role))
         }
     }
 

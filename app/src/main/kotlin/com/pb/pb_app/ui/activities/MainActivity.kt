@@ -87,7 +87,7 @@ class MainActivity : ComponentActivity() {
                         composable(COORDINATOR_SCREEN.route) { CoordinatorScreen(navController) }
                         composable(FREELANCER_SCREEN.route) { FreelancerScreen(navController) }
                         composable(NEW_INQUIRY_SCREEN.route) { NewInquiryScreen(navController) }
-                        composable(NEW_EMPLOYEE_SCREEN.route) { NewEmployeeScreen()  }
+                        composable(NEW_EMPLOYEE_SCREEN.route) { NewEmployeeScreen(navController)  }
                     }
                 }
             }

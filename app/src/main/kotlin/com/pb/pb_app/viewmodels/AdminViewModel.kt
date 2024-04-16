@@ -23,7 +23,6 @@ internal constructor(context: Context) : HomeViewModel() {
 
     var freelancers: MutableStateFlow<Resource<List<Freelancer>>> = MutableStateFlow(Resource.Loading())
     var coordinators: MutableStateFlow<Resource<List<Coordinator>>> = MutableStateFlow(Resource.Loading())
-    var selectedCoordinators = mutableListOf<String>()
 
     init {
         with(viewModelScope) {
@@ -60,23 +59,29 @@ internal constructor(context: Context) : HomeViewModel() {
         }
     }
 
-
-    fun appendCoordinator(coordinatorId: String) {
-        selectedCoordinators.add(coordinatorId)
-    }
-
-    fun assignCoordinator(inquiryId: Int, countDownMillis: Long) {
+    fun assignCoordinator(coordinatorId: String, inquiryId: Int) {
         viewModelScope.launch {
-            for (coordinatorId in selectedCoordinators) {
-                val action = InquiryUpdateAction.RequestCoordinatorAsAdmin(self.value.data!!.employeeId, coordinatorId, inquiryId, countDownMillis)
-
-                repository.updateInquiryStatus(action)
-            }
+            val action = InquiryUpdateAction.RequestCoordinatorAsAdmin(
+                self.value.data!!.employeeId,
+                coordinatorId,
+                inquiryId,
+                System.currentTimeMillis(),
+                System.currentTimeMillis() + 1800000
+            )
+            repository.updateInquiryStatus(action)
         }
     }
 
     fun deleteInquiry(inquiryId: Int) {
         val action = InquiryUpdateAction.DeleteInquiryAsAdmin(self.value.data!!.employeeId, inquiryId)
+        viewModelScope.launch {
+            repository.updateInquiryStatus(action)
+        }
+    }
+
+    fun markResolved(inquiryId: Int, tags: String) {
+        val action = InquiryUpdateAction.MarkResolvedAsAdmin(self.value.data!!.employeeId, inquiryId, tags)
+
         viewModelScope.launch {
             repository.updateInquiryStatus(action)
         }

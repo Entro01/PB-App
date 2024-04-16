@@ -30,11 +30,12 @@ fun CoordinatorScreen(navController: NavController) {
         role = EmployeeRole.COORDINATOR,
         freelancers = freelancers.data!!,
         coordinators = null,
+        onOnlineStatusToggled = { viewModel.setOnlineStatus(it) },
         miscInquiries = miscInquiries.data!!,
         urgentInquiries = urgentInquiries.data!!,
-        onOnlineStatusToggled = { viewModel.setOnlineStatus(it) },
-        onFreelancerSelected = { freelancerId -> viewModel.setSelectedEmployee(freelancerId) },
-        onInquiryRejected = { viewModel.rejectUrgentInquiry(it) },
-        onDialogFinished = { viewModel.acceptUrgentInquiry(it); viewModel.assignedFreelancer = "" }
+        onFreelancerChecked = { freelancerId -> viewModel.appendFreelancer(freelancerId) },
+        onFreelancerRequested = { viewModel.acceptUrgentInquiry(it); },
+        onFreelancerAssigned = {  freelancerId, inquiryId -> viewModel.assignFreelancer(freelancerId, inquiryId)},
+        onInquiryRejected = { viewModel.rejectUrgentInquiry(it) }
     )
 }

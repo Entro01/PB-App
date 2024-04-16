@@ -9,7 +9,7 @@ data class Inquiry(
     val service: String,
     var description: String,
     val contactNumber: String,
-    val assigningMillis: Long,
+    val creationTime: Long,
     val deadlineMillis: Long,
     val deliveryArea: String,
     val reference: Boolean,

@@ -6,8 +6,10 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import com.pb.pb_app.data.RepositoryImpl
+import com.pb.pb_app.data.models.inquiries.InquiryUpdateAction
 import com.pb.pb_app.data.models.inquiries.NewInquiry
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class NewInquiryViewModel(context: Context) : ViewModel() {
@@ -21,35 +23,36 @@ class NewInquiryViewModel(context: Context) : ViewModel() {
 
     private val repository = RepositoryImpl(context)
 
-    private val newInquiry = MutableStateFlow(NewInquiry("", "", System.currentTimeMillis(), 0, "", "", "", false))
+    private val _newInquiry = MutableStateFlow(NewInquiry("", "", System.currentTimeMillis(), 0, "", "", "", false))
+    val newInquiry get() = _newInquiry as StateFlow<NewInquiry>
 
     val shouldEnableSaveButton = MutableStateFlow(false)
 
     init {
         viewModelScope.launch {
-            newInquiry.collect {
-                shouldEnableSaveButton.emit(it.name.isNotEmpty() && it.description.isNotEmpty() && it.deadlineMillis != 0L && it.service.isNotEmpty() && it.contactNumber.isNotEmpty() && it.deliveryArea.isNotEmpty())
+            _newInquiry.collect {
+                shouldEnableSaveButton.emit(it.name.isNotEmpty() && it.description.isNotEmpty() && it.deadlineMillis > 0L && it.service.isNotEmpty() && it.contactNumber.isNotEmpty() && it.deliveryArea.isNotEmpty())
             }
         }
     }
 
     fun createNewInquiry() {
         viewModelScope.launch {
-            repository.createNewInquiry(newInquiry.value)
+            repository.updateInquiryStatus(InquiryUpdateAction.CreateInquiryAsAdmin(_newInquiry.value))
         }
     }
 
     fun updateNewInquiry(
-        name: String = newInquiry.value.name,
-        description: String = newInquiry.value.description,
-        deadlineMillis: Long = newInquiry.value.deadlineMillis,
-        service: String = newInquiry.value.service,
-        contactNumber: String = newInquiry.value.contactNumber,
-        deliveryArea: String = newInquiry.value.deliveryArea,
-        reference: Boolean = newInquiry.value.reference,
+        name: String = _newInquiry.value.name,
+        description: String = _newInquiry.value.description,
+        deadlineMillis: Long = _newInquiry.value.deadlineMillis,
+        service: String = _newInquiry.value.service,
+        contactNumber: String = _newInquiry.value.contactNumber,
+        deliveryArea: String = _newInquiry.value.deliveryArea,
+        reference: Boolean = _newInquiry.value.reference,
     ) {
         viewModelScope.launch {
-            newInquiry.emit(NewInquiry(name, description, System.currentTimeMillis(), deadlineMillis,service, contactNumber, deliveryArea, reference))
+            _newInquiry.emit(NewInquiry(name, description, System.currentTimeMillis(), deadlineMillis, service, contactNumber, deliveryArea, reference))
         }
     }
 

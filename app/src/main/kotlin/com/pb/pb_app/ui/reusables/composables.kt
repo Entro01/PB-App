@@ -6,8 +6,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,6 +16,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumTopAppBar
@@ -25,6 +26,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -53,17 +55,20 @@ fun Dp.toPx(): Int {
 fun HorizontalCarousel(
     modifier: Modifier = Modifier, itemsCount: Int, itemsLayout: @Composable (Int) -> Unit
 ) {
-    LazyRow(
-        modifier
-            .height(300.dp)
-            .fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        if (itemsCount == 0) item {
-            Text(text = "Nothing to show", style=MaterialTheme.typography.labelSmall, modifier = Modifier.fillMaxSize(), textAlign = TextAlign.Center)
-        }
+    Box(contentAlignment = Alignment.Center) {
+        if (itemsCount == 0) Text(text = "Nothing to show", style = MaterialTheme.typography.labelMedium, modifier = Modifier.fillMaxSize(), textAlign = TextAlign.Center)
 
-        items(itemsCount) {
-            itemsLayout(it)
+
+        LazyRow(
+            modifier
+                .height(300.dp)
+                .fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+
+
+            items(itemsCount) {
+                itemsLayout(it)
+            }
         }
     }
 }
@@ -135,7 +140,8 @@ fun SingleLineFormField(
         mutableStateOf("")
     }
 
-    TextField(value = text, onValueChange = { text = it;onTextChange(text) }, placeholder = { Text(text = placeholder) }, modifier = modifier, singleLine = true
+    TextField(
+        value = text, onValueChange = { text = it;onTextChange(text) }, placeholder = { Text(text = placeholder) }, modifier = modifier, singleLine = true, keyboardOptions = keyboardOptions
     )
 }
 
@@ -163,4 +169,17 @@ fun PBMediumTopBar(title: String, isSaveIconEnabled: Boolean, onSave: () -> Unit
             Text("Save")
         }
     })
+}
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DatePicker(datePickerState: DatePickerState, onDismissRequest: () -> Unit, onConfirm: (Long) -> Unit) {
+    DatePickerDialog(onDismissRequest = onDismissRequest, confirmButton = {
+        TextButton(onClick = { onConfirm(datePickerState.selectedDateMillis!!) }) {
+            Text(text = "OK")
+        }
+    }) {
+        DatePicker(state = datePickerState)
+    }
 }

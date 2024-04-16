@@ -1,5 +1,6 @@
 package com.pb.pb_app.ui
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -35,7 +36,7 @@ import com.pb.pb_app.viewmodels.LoginViewModel
 import com.pb.pb_app.data.enums.AuthenticationState
 import com.pb.pb_app.ui.enums.Destination
 import com.pb.pb_app.data.enums.EmployeeRole
-import com.pb.pb_app.data.enums.EmployeeRole.Companion.fromEmployeeId
+import com.pb.pb_app.data.enums.EmployeeRole.Companion.parseEmployeeId
 import com.pb.pb_app.ui.reusables.PBPasswordVisualTransformation
 import com.pb.pb_app.ui.reusables.PBUsernameVisualTransformation
 import com.pb.pb_app.ui.reusables.pbPasswordKeyboardActions
@@ -54,7 +55,7 @@ fun LoginScreen(navController: NavController) {
     val authenticationState by viewModel.authenticationState.collectAsState()
 
     if (authenticationState == AuthenticationState.LOGIN_SUCCESS) {
-        when (username.fromEmployeeId()) {
+        when (username.parseEmployeeId()) {
             EmployeeRole.ADMIN -> navController.navigate(Destination.ADMIN_SCREEN.route)
             EmployeeRole.COORDINATOR -> navController.navigate(Destination.COORDINATOR_SCREEN.route)
             EmployeeRole.FREELANCER -> navController.navigate(Destination.FREELANCER_SCREEN.route)
@@ -79,6 +80,7 @@ fun LoginScreen(navController: NavController) {
                 PBUsernameVisualTransformation(),
                 pbPasswordKeyboardOptions,
                 pbUsernameKeyboardActions,
+                isError = authenticationState.isError
             )
 
             CredentialsField(
@@ -89,8 +91,10 @@ fun LoginScreen(navController: NavController) {
                 pbPasswordKeyboardOptions,
                 pbPasswordKeyboardActions,
                 { viewModel.toggleState() },
-                authenticationState.isError, if (authenticationState == AuthenticationState.AUTHENTICATION_FAILURE) "Incorrect Credentials" else ""
+                authenticationState.isError
             )
+
+            Log.e(TAG, "LoginScreen: ${authenticationState.isError}", )
 
 
             LoginButton(!(username.isEmpty() || password.isEmpty())) {

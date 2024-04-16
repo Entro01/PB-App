@@ -1,7 +1,7 @@
 package com.pb.pb_app.data.serializers
 
+import com.pb.pb_app.data.Constants.InquiryStatusLabels.COORDINATOR_ACCEPTED
 import com.pb.pb_app.data.Constants.InquiryStatusLabels.COORDINATOR_REQUESTED
-import com.pb.pb_app.data.Constants.InquiryStatusLabels.FREELANCER_ACCEPTED
 import com.pb.pb_app.data.Constants.InquiryStatusLabels.FREELANCER_ASSIGNED
 import com.pb.pb_app.data.Constants.InquiryStatusLabels.FREELANCER_REQUESTED
 import com.pb.pb_app.data.Constants.InquiryStatusLabels.INQUIRY_RESOLVED
@@ -21,7 +21,7 @@ object InquiryStatusSerializer : JsonContentPolymorphicSerializer<InquiryStatus>
             UNASSIGNED -> InquiryStatus.Unassigned.serializer()
             COORDINATOR_REQUESTED -> InquiryStatus.CoordinatorRequested.serializer()
             FREELANCER_REQUESTED -> InquiryStatus.FreelancerRequested.serializer()
-            FREELANCER_ACCEPTED -> InquiryStatus.FreelancerAccepted.serializer()
+            COORDINATOR_ACCEPTED -> InquiryStatus.CoordinatorAccepted.serializer()
             FREELANCER_ASSIGNED -> InquiryStatus.FreelancerAssigned.serializer()
             INQUIRY_RESOLVED -> InquiryStatus.InquiryResolved.serializer()
             else -> throw IllegalArgumentException("Not a valid status $label")

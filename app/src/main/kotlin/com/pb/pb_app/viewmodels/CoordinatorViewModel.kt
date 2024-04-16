@@ -22,7 +22,7 @@ internal constructor(context: Context) : HomeViewModel() {
     override var miscInquiries: MutableStateFlow<Resource<List<Inquiry>>> = MutableStateFlow(Resource.Loading())
 
     var freelancers: MutableStateFlow<Resource<List<Freelancer>>> = MutableStateFlow(Resource.Loading())
-    var assignedFreelancer = ""
+    private var assignedFreelancer = mutableListOf<String>()
 
 
     init {
@@ -55,14 +55,16 @@ internal constructor(context: Context) : HomeViewModel() {
     }
 
 
-    fun setSelectedEmployee(freelancerId: String) {
-        assignedFreelancer = freelancerId
+    fun appendFreelancer(freelancerId: String) {
+        assignedFreelancer += freelancerId
     }
 
     fun acceptUrgentInquiry(inquiryId: Int) {
-        val inquiryUpdateAction = InquiryUpdateAction.AssignFreelancerAsCoordinator(self.value.data!!.employeeId, assignedFreelancer, inquiryId)
         viewModelScope.launch {
-            repository.updateInquiryStatus(inquiryUpdateAction)
+            assignedFreelancer.forEach {
+                val inquiryUpdateAction = InquiryUpdateAction.RequestFreelancerAsCoordinator(self.value.data!!.employeeId, it, inquiryId, System.currentTimeMillis(), System.currentTimeMillis() + 1800000)
+                repository.updateInquiryStatus(inquiryUpdateAction)
+            }
         }
     }
 
@@ -75,7 +77,15 @@ internal constructor(context: Context) : HomeViewModel() {
 
     fun setOnlineStatus(status: Boolean) {
         viewModelScope.launch {
-            repository.setEmployeeStatus(self.value.data!!.employeeId, status)
+            repository.setSelfStatus(status)
+        }
+    }
+
+    fun assignFreelancer(freelancerId: String, inquiryId: Int) {
+        val inquiryUpdateAction = InquiryUpdateAction.AssignFreelancerAsCoordinator(self.value.data!!.employeeId, freelancerId, inquiryId)
+
+        viewModelScope.launch {
+            repository.updateInquiryStatus(inquiryUpdateAction)
         }
     }
 }
